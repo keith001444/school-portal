@@ -435,6 +435,26 @@ def health_issue():
     return render_template('health_issue.html', students=students)
 #================Add Health issue Student==========
 #================Remove Health issue Student=============
+#================View all registered students=============
+def all_students():
+    with sqlite3.connect('student.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+        SELECT students.admission_no, students.first_name, students.last_name, rest.Grade
+        FROM students
+        JOIN rest ON students.admission_no = rest.admission_no
+        ORDER BY rest.Grade ASC
+        ''')
+        result = cursor.fetchall()
+        return result
+
+
+@app.route('/registered_students')
+def registered():
+    students = all_students()
+    return render_template('registered_students.html',students=students)
+
+
 #======================Fee Payment==============================================
 
 

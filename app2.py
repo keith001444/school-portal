@@ -7,7 +7,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-from requests.auth import HTTPBasicAuth
+from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from datetime import datetime
 
@@ -260,35 +260,7 @@ def view_memo():
     return render_template("view_memo.html", books=books)
 
 
-#------------Change Profile--------------
-# app.secret_key = 'your_secret_key'
-# # Set the upload folder
-# UPLOAD_FOLDER = 'static/uploads/'
-# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-#
-# # Ensure the upload directory exists
-# if not os.path.exists(UPLOAD_FOLDER):
-#     os.makedirs(UPLOAD_FOLDER)
-#
-# @app.route('/change_profile', methods=['GET', 'POST'])
-# def change_profile():
-#     if request.method == 'POST':
-#         # Check if the post request has the file part
-#         if 'profile_pic' not in request.files:
-#             return 'No file part'
-#         file = request.files['profile_pic']
-#         if file.filename == '':
-#             return 'No selected file'
-#         if file:
-#             # Save the file
-#             filename = file.filename
-#             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-#
-#             # Store the filename in session or database (here, session for simplicity)
-#             session['profile_picture'] = filename
-#
-#             return redirect(url_for('dashb'))
-#     return render_template('change_profile.html')
+
 def load_user_data(username):
     if os.path.exists('user_data.json'):
         with open('user_data.json', 'r') as f:
@@ -432,6 +404,8 @@ def non_compliant_students():
 def health_issue():
     students = database.get_ill_students()
     return render_template('health_issue.html', students=students)
+#================Add Health issue Student==========
+#================Remove Health issue Student=============
 #======================Fee Payment==============================================
 
 
@@ -444,14 +418,47 @@ def get_student_data(admission_number):
     conn.close()
     return result if result else (0, TOTAL_FEES)
 
-def update_student_fees(admission_number, amount_paid):
+
+
+
+
+# Function to get student data by either admission number or name
+def get_student_by_admission_or_name(identifier):
+    conn = sqlite3.connect('student.db')
+    cursor = conn.cursor()
+
+    # Check if identifier is a valid admission number or name
+    cursor.execute('''
+        SELECT admission_number FROM students
+        WHERE admission_number = ? OR (first_name || ' ' || last_name) = ?
+    ''', (identifier, identifier))
+
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        return result[0]  # Return admission number
+    else:
+        return None
+
+
+# Updated function to handle name or admission number and fee update
+def update_student_fees(identifier, amount_paid):
+    # Check if the identifier is an admission number or full name
+    admission_number = get_student_by_admission_or_name(identifier)
+
+    if admission_number is None:
+        return "Student not found"
+
     conn = sqlite3.connect('fees.db')
     cursor = conn.cursor()
 
+    # Get the previous total paid and remaining balance
     previous_total_paid, _ = get_student_data(admission_number)
     total_paid = previous_total_paid + amount_paid
     remaining_balance = TOTAL_FEES - total_paid
 
+    # Update the students' fee data
     cursor.execute('''
         INSERT INTO students (admission_number, total_paid, remaining_balance)
         VALUES (?, ?, ?)
@@ -459,7 +466,7 @@ def update_student_fees(admission_number, amount_paid):
         DO UPDATE SET total_paid = excluded.total_paid, remaining_balance = excluded.remaining_balance
     ''', (admission_number, total_paid, remaining_balance))
 
-    # Record the transaction in payment_history with remaining balance
+    # Record the transaction in the payment_history table
     date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     cursor.execute('''
         INSERT INTO payment_history (admission_number, amount_paid, remaining_balance, date_time)
@@ -470,6 +477,34 @@ def update_student_fees(admission_number, amount_paid):
     conn.close()
 
     return total_paid, remaining_balance
+
+
+# def update_student_fees(admission_number, amount_paid):
+#     conn = sqlite3.connect('fees.db')
+#     cursor = conn.cursor()
+#
+#     previous_total_paid, _ = get_student_data(admission_number)
+#     total_paid = previous_total_paid + amount_paid
+#     remaining_balance = TOTAL_FEES - total_paid
+#
+#     cursor.execute('''
+#         INSERT INTO students (admission_number, total_paid, remaining_balance)
+#         VALUES (?, ?, ?)
+#         ON CONFLICT(admission_number)
+#         DO UPDATE SET total_paid = excluded.total_paid, remaining_balance = excluded.remaining_balance
+#     ''', (admission_number, total_paid, remaining_balance))
+#
+#     # Record the transaction in payment_history with remaining balance
+#     date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+#     cursor.execute('''
+#         INSERT INTO payment_history (admission_number, amount_paid, remaining_balance, date_time)
+#         VALUES (?, ?, ?, ?)
+#     ''', (admission_number, amount_paid, remaining_balance, date_time))
+#
+#     conn.commit()
+#     conn.close()
+#
+#     return total_paid, remaining_balance
 
 def get_payment_history(admission_number):
     conn = sqlite3.connect('fees.db')
@@ -502,18 +537,59 @@ def download_receipt():
 
     # Generate PDF receipt
     buffer = io.BytesIO()
-    p = canvas.Canvas(buffer)
+    pdf = SimpleDocTemplate(buffer, pagesize=A4)
 
-    p.drawString(100, 750, f"Receipt for Admission Number: {document_functions.replace_slash_with_slash(admission_number)}")
-    p.drawString(100, 730, f"Total Paid: sh.{total_paid} ")
-    p.drawString(100, 710, f"Remaining Balance: sh.{remaining_balance} ")
-    p.drawString(100, 690, "Thank you for your payment.")
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = styles['Title']
+    normal_style = styles['Normal']
 
-    p.showPage()
-    p.save()
+    # Receipt content
+    elements = []
+
+    # Title
+    title = Paragraph(
+        f"Payment Receipt for Admission Number: {document_functions.replace_slash_with_slash(admission_number)}",
+        title_style)
+    elements.append(title)
+
+    # Spacer
+    elements.append(Paragraph("<br/><br/>", normal_style))
+
+    # Receipt table data
+    data = [
+        ["Description", "Amount (sh)"],
+        ["Total Paid", f"{total_paid}"],
+        ["Remaining Balance", f"{remaining_balance}"]
+    ]
+
+    # Create a table with a custom style
+    table = Table(data, colWidths=[3 * inch, 2 * inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    elements.append(table)
+
+    # Spacer
+    elements.append(Paragraph("<br/><br/>", normal_style))
+
+    # Thank you message
+    thank_you = Paragraph("Thank you for your payment.", normal_style)
+    elements.append(thank_you)
+
+    # Build PDF
+    pdf.build(elements)
 
     buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name=f"receipt_{admission_number}.pdf", mimetype='application/pdf')
+    return send_file(buffer, as_attachment=True, download_name=f"receipt_{admission_number}.pdf",
+                     mimetype='application/pdf')
 
 @app.route('/history', methods=['GET'])
 def view_history():

@@ -5,23 +5,18 @@
     <canvas id="studentScoresChart" width="400" height="200"></canvas>
 </div>
     <script>
-        // Student scores data
-        const studentScores = {
-            '2021': [75, 78, 80, 82, 85, 88, 90, 92, 95],
-            '2022': [65, 68, 70, 72, 75, 78, 80, 82, 85],
-            '2023': [85, 88, 90, 92, 95, 98, 100, 102, 105],
-            '2024': [60, 62, 65, 67, 70, 72, 75, 78, 80]
-        };
+        // Student scores data from the server
+        const studentScores = {{ exam_scores | safe }};
 
         // X-axis labels
         const terms = ['Term 1 Exam 1', 'Term 1 Exam 2', 'Term 1 Exam 3',
                        'Term 2 Exam 1', 'Term 2 Exam 2', 'Term 2 Exam 3',
                        'Term 3 Exam 1', 'Term 3 Exam 2', 'Term 3 Exam 3'];
 
-        // Create datasets for each year
+        // Create datasets for each year with data
         const datasets = Object.keys(studentScores).map(year => ({
             label: `Year ${year}`,
-            data: studentScores[year],
+            data: studentScores[year] || Array(9).fill(null),  // Fill with null if no data for that term
             fill: false,
             borderColor: getRandomColor(),
             tension: 0.1
@@ -53,7 +48,7 @@
                     },
                     title: {
                         display: true,
-                        text: '{{Student}} Scores Over the Years'
+                        text: '{{ student_id }} Scores Over the Years'
                     }
                 },
                 scales: {

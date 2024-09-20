@@ -77,9 +77,37 @@ def fee():
     return render_template('fee.html')
 
 
-@app.route('/examinations')
-def examinations():
-    return render_template("examtrend.html")
+@app.route('/student_scores')
+def student_scores():
+    admission_no = session.get('admission_no')
+    conn = sqlite3.connect('student.db')
+    cursor = conn.cursor()
+
+    # Get the current year and calculate the past four years
+    current_year = datetime.now().year
+    years = [current_year - i for i in range(4)]
+
+    # Query to get exam scores for the past available years
+    query = '''
+        SELECT year, term, average
+        FROM Examinations
+        WHERE admission_no = ? AND year <= ? 
+        ORDER BY year, term
+    '''
+    cursor.execute(query, (admission_no, current_year))
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Organize data into a dictionary by year
+    exam_scores = {str(year): [] for year in years}
+    for row in rows:
+        year, term, average = row
+        exam_scores[str(year)].append(average)
+
+    # Filter out years with no data
+    exam_scores = {year: average for year,average in exam_scores.items() if average}
+
+    return render_template('examtrend.html', exam_scores=exam_scores, student_id=admission_no)
 
 
 @app.route('/settings')
@@ -379,6 +407,7 @@ def submit_signup():
     sickness = request.form['sickness']
     treatment = request.form['treatment']
     admission_no = request.form['admission_no']
+    phone = request.form['phone']
     existing_student = database.student_exist(admission_no)
     if existing_student:
         # Admission number already exists
@@ -388,7 +417,7 @@ def submit_signup():
     database.add_someone(admission_no, first_name, middle_name, last_name, gender, age)
     database.add_level(admission_no, grade)
     database.put_ill_students(admission_no, sickness, treatment)
-    database.add_login(admission_no, last_name)
+    database.add_login(admission_no, last_name,phone)
     return redirect(url_for('signup_success'))
 
 
@@ -514,11 +543,11 @@ def get_payment_history(admission_number):
     conn.close()
     return history
 
-@app.route('/fee_payment')
+@app.route('/fee_payment', methods=['GET','POST'])
 def index1():
-    admission_no = get_student_by_admission_or_name(request.form['admissionNumber'])
-    admission_no = document_functions.replace_slash_with_dot(admission_no)
-    return render_template('fees_payment.html', admission_no=admission_no)
+    # admission_no = get_student_by_admission_or_name(request.form['admissionNumber'])
+    # admission_no = document_functions.replace_slash_with_dot(admission_no)
+    return render_template('fees_payment.html' )
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -618,7 +647,7 @@ def download_history():
 
     # Add a title
     styles = getSampleStyleSheet()
-    title = Paragraph(f"Payment History for Admission Number: {admission_number}", styles['Title'])
+    title = Paragraph(f"Payment History for : {database.get_first_name( admission_number)} {database.get_middle_name(admission_number)} {database.get_last_name(admission_number)}", styles['Title'])
     elements.append(title)
 
     # Table data (headers)

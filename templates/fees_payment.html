@@ -65,7 +65,7 @@
         <p id="totalPaid"></p>
         <p id="remainingBalance"></p>
         <div id="downloadReceipt">
-            <a id="receiptLink" href="#" target="_blank">Download Receipt</a>
+            <a id="receiptLink" href="#" target="_blank">Thank You</a>
         </div>
     </div>
 </div>
@@ -87,7 +87,7 @@
             document.getElementById('remainingBalance').textContent = `Remaining Balance: sh.${data.remaining_balance} `;
             document.getElementById('result').style.display = 'block';
             document.getElementById('downloadReceipt').style.display = 'block';
-            document.getElementById('receiptLink').href = `/receipt/${admission_no}`;
+
         })
         .catch(error => console.error('Error:', error));
     };

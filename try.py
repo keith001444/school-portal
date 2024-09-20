@@ -161,3 +161,32 @@ import sqlite3
 # database.insert_time('EB3/57222/21',2024,2,'mid-term')
 
 # database.add_level('EB3/59843/21','form2')
+# import sqlite3
+#
+# def add_phone_number_column(db_path, table_name):
+#     # Connect to the SQLite database
+#     conn = sqlite3.connect(db_path)
+#     cursor = conn.cursor()
+#
+#     # SQL command to add a new column "phone_number"
+#     alter_table_query = f'''
+#     ALTER TABLE {table_name}
+#     ADD COLUMN phone_number TEXT;
+#     '''
+#
+#     try:
+#         # Execute the query to add the column
+#         cursor.execute(alter_table_query)
+#         conn.commit()
+#         print(f"'phone_number' column added successfully to the {table_name} table.")
+#     except sqlite3.OperationalError as e:
+#         # If the column already exists or another error occurs, catch the exception
+#         print(f"An error occurred: {e}")
+#     finally:
+#         # Close the connection
+#         conn.close()
+#
+# # Example usage:
+# db_path = 'student.db'  # Path to your SQLite database file
+# table_name = 'rest'       # Name of the table to add the column to
+# add_phone_number_column(db_path, table_name)

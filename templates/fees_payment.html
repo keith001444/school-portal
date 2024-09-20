@@ -75,7 +75,7 @@
         e.preventDefault();
 
         var formData = new FormData(this);
-        var admissionNumber = document.getElementById('admissionNumber').value;
+
 
         fetch('/submit', {
             method: 'POST',
@@ -87,7 +87,7 @@
             document.getElementById('remainingBalance').textContent = `Remaining Balance: sh.${data.remaining_balance} `;
             document.getElementById('result').style.display = 'block';
             document.getElementById('downloadReceipt').style.display = 'block';
-            document.getElementById('receiptLink').href = `/receipt`;
+            document.getElementById('receiptLink').href = `/receipt/${admission_no}`;
         })
         .catch(error => console.error('Error:', error));
     };

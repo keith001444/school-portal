@@ -429,8 +429,8 @@ def get_student_by_admission_or_name(identifier):
 
     # Check if identifier is a valid admission number or name
     cursor.execute('''
-        SELECT admission_number FROM students
-        WHERE admission_number = ? OR (first_name || ' ' || last_name) = ?
+        SELECT admission_no FROM students
+        WHERE admission_no = ? OR (first_name || ' ' || last_name) = ?
     ''', (identifier, identifier))
 
     result = cursor.fetchone()
@@ -516,7 +516,9 @@ def get_payment_history(admission_number):
 
 @app.route('/fee_payment')
 def index1():
-    return render_template('fees_payment.html')
+    admission_no = get_student_by_admission_or_name(request.form['admissionNumber'])
+    admission_no = document_functions.replace_slash_with_dot(admission_no)
+    return render_template('fees_payment.html', admission_no=admission_no)
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -530,9 +532,9 @@ def submit():
         'remaining_balance': remaining_balance
     })
 
-@app.route('/receipt', methods=['GET'])
-def download_receipt():
-    admission_number = session.get('admission_no')
+@app.route('/receipt/<admission_no>', methods=['GET'])
+def download_receipt(admission_no):
+    admission_number = document_functions.replace_slash_with_slash(admission_no)
     total_paid, remaining_balance = get_student_data(admission_number)
 
     # Generate PDF receipt

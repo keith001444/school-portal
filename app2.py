@@ -415,9 +415,9 @@ def submit_signup():
         return redirect(url_for('index'))
 
     database.add_someone(admission_no, first_name, middle_name, last_name, gender, age)
-    database.add_level(admission_no, grade)
+    database.add_level(admission_no, grade,phone)
     database.put_ill_students(admission_no, sickness, treatment)
-    database.add_login(admission_no, last_name,phone)
+    database.add_login(admission_no, last_name)
     return redirect(url_for('signup_success'))
 
 
@@ -440,7 +440,7 @@ def all_students():
     with sqlite3.connect('student.db') as conn:
         cursor = conn.cursor()
         cursor.execute('''
-        SELECT students.admission_no, students.first_name, students.last_name, rest.Grade
+        SELECT students.admission_no, students.first_name, students.last_name, rest.phone_number, rest.Grade
         FROM students
         JOIN rest ON students.admission_no = rest.admission_no
         ORDER BY rest.Grade ASC

@@ -271,29 +271,29 @@ def add_admin_data1(position, f_name, m_name, l_name, gender, age):
         conn.commit()
 
 
-def add_login(admission_no, password,phone):
+def add_login(admission_no, password):
     with sqlite3.connect('student.db') as conn:
         cursor = conn.cursor()
         cursor.execute('''
             INSERT INTO logins (
             admission_no,
-            password,
-            phone
-                ) VALUES (?, ?, ?)
-            ''', (admission_no, password, phone))
+            password
+                ) VALUES (?, ?)
+            ''', (admission_no, password))
         conn.commit()
 
 
 #add details rest table Contains the Class of the student
-def add_level(admission_no, grade):
+def add_level(admission_no, grade, phone):
     with sqlite3.connect('student.db') as conn:
         cursor = conn.cursor()
         cursor.execute('''
             INSERT INTO rest(
             admission_no,
-            Grade
-                ) VALUES (?, ?)
-            ''', (admission_no, grade))
+            Grade,
+            phone_number
+                ) VALUES (?, ?, ?)
+            ''', (admission_no, grade, phone))
         conn.commit()
 
 

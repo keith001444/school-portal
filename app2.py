@@ -766,8 +766,40 @@ def change_password():
             flash('Current password is incorrect.', 'error')
 
         conn.close()
-
     return render_template('change_password.html')
+
+#==================Developer portal
+UPLOAD_FOLDER = 'static/images'
+FIXED_FILENAME = 'your_uploaded_image.jpg'
+
+# Configure upload folder
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Ensure the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+@app.route('/developer')
+def developer():
+    return render_template('developer.html')
+
+@app.route('/upload_image', methods=['POST'])
+def upload_file():
+    if 'image' not in request.files:
+        return "No file part"
+
+    file = request.files['image']
+
+    if file.filename == '':
+        return "No selected file"
+
+    if file:
+        # Use the fixed filename for the uploaded image
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], FIXED_FILENAME)
+        file.save(file_path)
+        return f'Image successfully uploaded and saved as {FIXED_FILENAME}'
+
+
 if __name__ == '__main__':
     if not os.path.exists('static/uploads'):
         os.makedirs('static/uploads')

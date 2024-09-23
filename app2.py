@@ -107,7 +107,7 @@ def student_scores():
     # Filter out years with no data
     exam_scores = {year: average for year,average in exam_scores.items() if average}
 
-    return render_template('examtrend.html', exam_scores=exam_scores, student_id=admission_no)
+    return render_template('examtrend.html', exam_scores=exam_scores, student_id=admission_no, student_marks=view_student_marks(), length = len(view_student_marks()))
 
 
 @app.route('/settings')
@@ -142,11 +142,15 @@ def submit_marks():
     # For demonstration, let's print the marks list
     print("Marks List:", marks_list)
     admission_no = document_functions.replace_slash_with_slash(request.form['admission_no'])
+    exam_type = request.form['exam_type']
+    year = request.form['year']
+    term = request.form['term']
     # You can now use marks_list for further processing, such as inserting into a database
-    database.insert_marks(admission_no, marks_list)
-    database.set_average(admission_no)
+    database.insert_marks(year, term, exam_type, admission_no, marks_list)
+    database.set_average(admission_no,term, year, exam_type)
 
     return "Marks submitted successfully!"
+
 
 
 @app.route('/submit_selection', methods=['GET', 'POST'])
@@ -186,7 +190,7 @@ def enter_student_marks(admission_no):
     exam_type = request.form['type']
     database.insert_time(admission_n, year, term, exam_type)
 
-    return render_template('enter_marks.html', admission_no=admission_n)
+    return render_template('enter_marks.html', admission_no=admission_n,year=year,exam_type=exam_type, term=term)
 
 
 @app.route('/view_students_marks')
@@ -798,7 +802,17 @@ def upload_file():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], FIXED_FILENAME)
         file.save(file_path)
         return f'Image successfully uploaded and saved as {FIXED_FILENAME}'
-
+#===============================Exam Results
+def view_student_marks():
+    admission_no = session.get('admission_no')
+    with sqlite3.connect('student.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+        SELECT * FROM Examinations
+        WHERE admission_no = ?
+        ''',(admission_no,))
+    result = cursor.fetchall()
+    return result
 
 if __name__ == '__main__':
     if not os.path.exists('static/uploads'):

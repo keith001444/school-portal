@@ -190,3 +190,26 @@ import sqlite3
 # db_path = 'student.db'  # Path to your SQLite database file
 # table_name = 'rest'       # Name of the table to add the column to
 # add_phone_number_column(db_path, table_name)
+import app2
+# import sqlite3
+data=app2.view_student_marks('EB3/57373/21')
+print(data)
+# def delete_exam_records(admission_no, year, term):
+#     with sqlite3.connect('student.db') as conn:
+#         cursor = conn.cursor()
+#
+#         # SQL query to delete records based on admission_no, year, and term
+#         query = '''
+#             DELETE FROM Examinations
+#             WHERE admission_no = ? AND year = ? AND term = ?
+#         '''
+#
+#         # Execute the query
+#         cursor.execute(query, (admission_no, year, term))
+#         conn.commit()
+#
+#         if cursor.rowcount > 0:
+#             print(f"Records for admission_no {admission_no}, year {year}, term {term} deleted successfully.")
+#         else:
+#             print(f"No records found for admission_no {admission_no}, year {year}, term {term}.")
+# delete_exam_records('EB3/57373/21',2024,2)

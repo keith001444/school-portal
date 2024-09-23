@@ -1,5 +1,18 @@
 {% extends "dashboard.html" %}
 {% block content %}
+ <style>
+
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 <div class="dashboard">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <canvas id="studentScoresChart" width="400" height="200"></canvas>
@@ -73,4 +86,69 @@
             }
         });
     </script>
+{% if student_marks %}
+
+{% for marks in range(length) %}
+<h3>year = {{ student_marks[1][marks] }} term =  {{ student_marks[marks][2] }} type =  {{ student_marks[marks][3] }}</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Subjects</th>
+                <th>Marks</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td>Mathematics</td>
+                <td> {{ student_marks[marks][4] }}</td>
+            </tr>
+             <tr>
+                <td>Biology</td>
+                <td>{{ student_marks[marks][5] }}</td>
+            </tr>
+             <tr>
+                <td>Chemistry</td>
+                <td>{{ student_marks[marks][6] }}</td>
+            </tr>
+             <tr>
+                <td>Physics</td>
+                <td>{{ student_marks[marks][7] }}</td>
+            </tr>
+             <tr>
+                <td>Geography</td>
+                <td>{{ student_marks[marks][8] }}</td>
+            </tr>
+            <tr>
+                <td>Business</td>
+                <td>{{ student_marks[marks][9] }}</td>
+            </tr>
+            <tr>
+                <td>English</td>
+                <td>{{ student_marks[marks][10] }}</td>
+            </tr>
+            <tr>
+                <td>Kiswahili</td>
+                <td>{{ student_marks[marks][11] }}</td>
+            </tr>
+            <tr>
+                <td>C.R.E</td>
+                <td>{{ student_marks[marks][12] }}</td>
+            </tr>
+            <tr>
+                <td>French</td>
+                <td>{{ student_marks[marks][13] }}</td>
+            </tr>
+            <tr>
+                <td>Average</td>
+                <td>{{ student_marks[marks][14] }}</td>
+            </tr>
+
+        </tbody>
+    </table>
+{% endfor %}
+{% else %}
+    <p>No examination records found for this student.</p>
+{% endif %}
+
 {% endblock %}

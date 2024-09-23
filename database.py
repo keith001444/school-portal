@@ -299,7 +299,7 @@ def add_level(admission_no, grade, phone):
 
 #=================insert Marks of Each Student
 
-def insert_marks(admission_no, marks_list):
+def insert_marks(year,time,exam_type,admission_no, marks_list):
     if len(marks_list) != len(subject):
         raise ValueError("Marks list length must match the number of subjects.")
 
@@ -307,14 +307,13 @@ def insert_marks(admission_no, marks_list):
         cursor = conn.cursor()
 
         # Build the SQL query dynamically based on the subjects
-        query = f'''
+        query =  f'''
             UPDATE Examinations
             SET {', '.join([f"{subj} = ?" for subj in subject])}
-            WHERE admission_no = ?
-            '''
-
+            WHERE admission_no = ? AND year = ? AND term = ? AND type = ?
+        '''
         # Execute the query with admission_no followed by marks list
-        cursor.execute(query, ( *marks_list,admission_no))
+        cursor.execute(query, ( *marks_list,admission_no,year,time,exam_type))
         conn.commit()
 def insert_time(admission_no,year, term, exam_type):
     with sqlite3.connect('student.db') as conn:
@@ -688,7 +687,7 @@ def get_all_students_exams():
     return result
 
 
-def set_average(admission_no):
+def set_average(admission_no,term,year,exam_type):
     with sqlite3.connect('student.db') as conn:
         cursor = conn.cursor()
 
@@ -697,19 +696,19 @@ def set_average(admission_no):
                 (Mathematics + Biology + Chemistry + Physics + Geography + Business +
                 English + Kiswahili + CRE + French) / 10.0, 2) AS avg_marks
             FROM Examinations
-            WHERE admission_no = ?
+            WHERE admission_no = ? AND term = ? AND year = ? AND type = ?
         """
 
         # Execute the query with the admission_no parameter correctly passed as a tuple
-        cursor.execute(query, (admission_no,))
+        cursor.execute(query, (admission_no,term,year,exam_type))
 
         # Fetch the result if you need to do something with the calculated average
         avg_marks = cursor.fetchone()[0]  # Fetch the average from the result
 
         query2 = '''
-        UPDATE Examinations SET average = ? WHERE admission_no = ?  
+        UPDATE Examinations SET average = ? WHERE admission_no = ? AND term = ? AND year = ? AND type = ? 
         '''
-        cursor.execute(query2,(avg_marks,admission_no))
+        cursor.execute(query2,(avg_marks,admission_no,term,year,exam_type))
 
         conn.commit()
 

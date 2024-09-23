@@ -1,7 +1,9 @@
 {% extends "dashboard.html" %}
 {% block content %}
  <style>
-
+        h5{
+         color: red;
+        }
         table, th, td {
             border: 1px solid black;
         }
@@ -89,7 +91,7 @@
 {% if student_marks %}
 
 {% for marks in range(length) %}
-<h3>year = {{ student_marks[1][marks] }} term =  {{ student_marks[marks][2] }} type =  {{ student_marks[marks][3] }}</h3>
+<h5>year = {{ student_marks[marks][1] }} term =  {{ student_marks[marks][2] }} type =  {{ student_marks[marks][3] }}</h5>
     <table>
         <thead>
             <tr>
